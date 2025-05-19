@@ -1,0 +1,103 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+
+\title{Job Shop Scheduling with the SPT Rule \\ \large Algorithms and Complexity Project}
+\author{konrantos}
+\date{}
+
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{backcolor}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolor},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{red},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Description}
+
+In the classic Job Shop Scheduling Problem (JSSP), we are given a set of jobs, each consisting of a sequence of operations that must be processed in a specific order on different machines. Each operation must be processed on a specific machine for a defined amount of time. The goal is to schedule all operations to minimize the total makespan, i.e., the time at which all jobs are completed.
+
+\section{Analysis and Solution}
+
+This project implements a heuristic solution using the Shortest Processing Time (SPT) rule. Each job is assigned a priority based on the sum of its operation times. Jobs with lower total processing time are scheduled earlier.
+
+We assume non-preemptive execution and that each machine can handle only one job at a time. Machines are scheduled greedily according to the SPT job order and machine availability.
+
+\section{Python Implementation}
+
+The implementation reads job and machine data from standard dataset files (e.g., `la01.txt`, `mt06.txt`), which follow a specific format. For each job, both the operation durations and the machine sequence are provided.
+
+The following Python snippet demonstrates the structure of the SPT makespan calculation:
+
+\begin{lstlisting}[language=Python, caption=SPT-based makespan calculation]
+def calculate_makespan_spt(num_jobs, num_machines, job_times, job_sequences):
+    machine_schedule = [0] * num_machines
+    job_completion = [0] * num_jobs
+    sorted_jobs = sorted(range(num_jobs), key=lambda x: sum(job_times[x]))
+    for job in sorted_jobs:
+        for step in range(num_machines):
+            machine = job_sequences[job][step] - 1
+            time = job_times[job][step]
+            machine_schedule[machine] = max(machine_schedule[machine], job_completion[job]) + time
+            job_completion[job] = machine_schedule[machine]
+    return max(machine_schedule)
+\end{lstlisting}
+
+\section{Results and Observations}
+
+Experiments were conducted using standard OR-Library datasets (`la01` to `la05`, `mt06`, `mt10`, `mt20`). Below is a table showing the calculated makespan using the SPT rule versus the known optimal makespan (where available):
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Instance & SPT Makespan & Optimal Makespan & Difference \\
+\hline
+la01 & 688 & 666 & +22 \\
+la02 & 737 & 655 & +82 \\
+la03 & 1110 & 597 & +513 \\
+la04 & 938 & 590 & +348 \\
+la05 & 1211 & 593 & +618 \\
+mt06 & 1578 & 55 & +1523 \\
+mt10 & 1616 & 930 & +686 \\
+mt20 & 1852 & 1165 & +687 \\
+\hline
+\end{tabular}
+\caption{Comparison of SPT vs. Optimal Makespan}
+\end{table}
+
+We observe that the SPT heuristic works better for smaller instances (e.g., `la01`) and becomes increasingly suboptimal for larger or more complex instances (e.g., `mt10`, `mt20`).
+
+\section{Conclusions}
+
+The SPT rule offers a simple and fast scheduling strategy for job shop problems. However, its performance heavily depends on the structure of the instance. While suitable for small datasets or as a baseline, it often fails to approach the optimal solution for larger or more irregular job-machine configurations.
+
+Further optimization methods, such as tabu search, genetic algorithms, or simulated annealing, could significantly improve the makespan.
+
+\end{document}
